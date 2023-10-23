@@ -24,6 +24,9 @@ import java.util.concurrent.locks.*;
 /**
  * This class echoes a string called from JavaScript.
  */
+public abstract class DataAvailableListener {
+    public abstract void onDataAvailable(String data);
+}
 
 public class SerialPortPlugin extends CordovaPlugin {
     private SerialPort serialPort;
@@ -32,9 +35,6 @@ public class SerialPortPlugin extends CordovaPlugin {
     private ReadDataThread readThread;
     private boolean dataModel;
 
-    public interface DataAvailableListener {
-        void onDataAvailable(String data);
-    }
 
     private DataAvailableListener dataAvailableListener;
 
@@ -90,6 +90,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                 callbackContext.sendPluginResult(result);
             }
         };
+        
         readThread.addDataAvailableListener(dataAvailableListener);
     }
 
@@ -297,6 +298,7 @@ class ReadDataThread implements Runnable {
 			readData += new String(byteArray);
           }
           if (dataAvailableListener != null) {
+            
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }
           lock.unlock();
