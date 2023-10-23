@@ -49,11 +49,9 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("read")) {
-            //this.readSerialData(callbackContext);
-            //return true;
-            continuousRead = true; // Set the flag to true for continuous reading
-            this.startContinuousRead(callbackContext);
+            this.readSerialData(callbackContext);
             return true;
+
         }
         else if (action.equals("write")) {
             String message = args.getString(0);
@@ -72,7 +70,7 @@ public class SerialPortPlugin extends CordovaPlugin {
             this.setHex(message);
             return true;
         }
-        else if (action.equals("registerRead ")) {
+        else if (action.equals("registerRead")) {
             continuousRead = true; // Set the flag to true for continuous reading
             this.startContinuousRead(callbackContext);
             return true;
