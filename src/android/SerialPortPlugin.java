@@ -18,19 +18,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import com.example.x6.serial.SerialPort;
+
+
 import java.util.concurrent.locks.*;
 /**
  * This class echoes a string called from JavaScript.
  */
-    public interface DataAvailableListener {
-        void onDataAvailable(String data);
-    }
-public class SerialPortPlugin extends CordovaPlugin implements DataAvailableListener {
+
+public class SerialPortPlugin extends CordovaPlugin {
     private SerialPort serialPort;
     private InputStream inputStream;
     private OutputStream outputStream;
     private ReadDataThread readThread;
     private boolean dataModel;
+
+    public interface DataAvailableListener {
+        void onDataAvailable(String data);
+    }
+
+    private DataAvailableListener dataAvailableListener;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -66,21 +72,26 @@ public class SerialPortPlugin extends CordovaPlugin implements DataAvailableList
         }
         else if (action.equals("registerRead")) {
                     // Register a listener when the "read" action is invoked
-            // Register a listener when the "read" action is invoked
-            readThread.addDataAvailableListener(new DataAvailableListener() {
-                @Override
-                public void onDataAvailable(String data) {
-                    PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                    result.setKeepCallback(true); // Keep the callback open for future data
-                    callbackContext.sendPluginResult(result);
-                }
-            });
+            this.registerReadListener(callbackContext);
             return true;
         }
 
         return false;
     }
 
+    private void registerReadListener(CallbackContext callbackContext) {
+        // Register a listener when the "read" action is invoked
+        dataAvailableListener = new DataAvailableListener() {
+            @Override
+            public void onDataAvailable(String data) {
+                // This callback function will be invoked when data is received
+                PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                result.setKeepCallback(true); // Keep the callback open for future data
+                callbackContext.sendPluginResult(result);
+            }
+        };
+        readThread.addDataAvailableListener(dataAvailableListener);
+    }
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
@@ -233,9 +244,7 @@ public class SerialPortPlugin extends CordovaPlugin implements DataAvailableList
         readThread.setHex(this.dataModel);
     }
 
-    public void registerDataAvailableListener(DataAvailableListener listener) {
-        this.dataAvailableListener = listener;
-    }
+
 }
 
 class ReadDataThread implements Runnable {
@@ -256,10 +265,6 @@ class ReadDataThread implements Runnable {
       System.out.println("Creating " +  threadName );
    }
 
-    public void addDataAvailableListener(DataAvailableListener listener) {
-            this.dataAvailableListener = listener;
-    }
-    
    public void run() {
 	 int readSize = -1;
      while(running) {
@@ -292,8 +297,8 @@ class ReadDataThread implements Runnable {
 			readData += new String(byteArray);
           }
           if (dataAvailableListener != null) {
-                dataAvailableListener.onDataAvailable(readData);
-          }
+                dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
+           }
           lock.unlock();
           System.out.println("readstr:" + readData);
       }
@@ -340,4 +345,7 @@ class ReadDataThread implements Runnable {
         e.printStackTrace();
      }
   }
+  public void addDataAvailableListener(DataAvailableListener listener) {
+        dataAvailableListener = listener;
+    }
 }
