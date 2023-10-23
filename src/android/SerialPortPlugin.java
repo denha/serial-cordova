@@ -32,6 +32,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private OutputStream outputStream;
     private ReadDataThread readThread;
     private boolean dataModel;
+    private boolean continuousRead;
 
 
     private DataAvailableListener dataAvailableListener;
@@ -69,28 +70,39 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-                    // Register a listener when the "read" action is invoked
-            //this.registerReadListener(callbackContext);
+            continuousRead = true; // Set the flag to true for continuous reading
+            this.startContinuousRead(callbackContext);
             return true;
         }
 
         return false;
     }
 
-    /*private void registerReadListener(CallbackContext callbackContext) {
-        // Register a listener when the "read" action is invoked
-        dataAvailableListener = new DataAvailableListener() {
-            @Override
-            public void onDataAvailable(String data) {
-                // This callback function will be invoked when data is received
-                PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                result.setKeepCallback(true); // Keep the callback open for future data
-                callbackContext.sendPluginResult(result);
-            }
-        };
-        
-        readThread.addDataAvailableListener(dataAvailableListener);
-    }*/
+    private void startContinuousRead(CallbackContext callbackContext) {
+        if (continuousRead) {
+            Thread continuousReadThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (continuousRead) {
+                        String data = readThread.getData();
+                        if (data != null) {
+                            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                            result.setKeepCallback(true);
+                            callbackContext.sendPluginResult(result);
+                        }
+
+                        try {
+                            Thread.sleep(100); // Adjust the sleep duration as needed
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+
+            continuousReadThread.start();
+        }
+    }
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
@@ -345,7 +357,5 @@ class ReadDataThread implements Runnable {
         e.printStackTrace();
      }
   }
-  /*public void addDataAvailableListener(DataAvailableListener listener) {
-        dataAvailableListener = listener;
-    }*/
+
 }
