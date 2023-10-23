@@ -24,9 +24,7 @@ import java.util.concurrent.locks.*;
 /**
  * This class echoes a string called from JavaScript.
  */
-protected interface DataAvailableListener {
-    void onDataAvailable(String data);
-}
+
 
 public class SerialPortPlugin extends CordovaPlugin {
     private SerialPort serialPort;
@@ -36,7 +34,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private boolean dataModel;
 
 
-    //private DataAvailableListener dataAvailableListener;
+    private DataAvailableListener dataAvailableListener;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
