@@ -24,6 +24,9 @@ import java.util.concurrent.locks.*;
 /**
  * This class echoes a string called from JavaScript.
  */
+public interface DataAvailableListener {
+    void onDataAvailable(String data);
+}
 
 public class SerialPortPlugin extends CordovaPlugin {
     private SerialPort serialPort;
