@@ -69,7 +69,7 @@ public class SerialPortPlugin extends CordovaPlugin {
             this.setHex(message);
             return true;
         }
-        else if (action.equals("registerRead")) {
+        else if (action.equals("registerRead ")) {
             continuousRead = true; // Set the flag to true for continuous reading
             this.startContinuousRead(callbackContext);
             return true;
@@ -92,7 +92,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                         }
 
                         try {
-                            Thread.sleep(10); // Adjust the sleep duration as needed
+                            Thread.sleep(100); // Adjust the sleep duration as needed
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

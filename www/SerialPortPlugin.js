@@ -21,7 +21,7 @@ var SerialPort = {
     setHex: function (isTrue) {
         exec(null, null, "SerialPortPlugin", "setHex", [isTrue]);
     },
-    registerRead: function (success, error) {
+    registerRead : function (success, error) {
         exec(success, error, "SerialPortPlugin", "registerRead", []);
     },
 };
