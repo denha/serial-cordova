@@ -24,7 +24,7 @@ import java.util.concurrent.locks.*;
 /**
  * This class echoes a string called from JavaScript.
  */
-public interface DataAvailableListener {
+protected interface DataAvailableListener {
     void onDataAvailable(String data);
 }
 
