@@ -33,7 +33,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private boolean dataModel;
 
 
-    private DataAvailableListener dataAvailableListener;
+    //private DataAvailableListener dataAvailableListener;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -76,7 +76,7 @@ public class SerialPortPlugin extends CordovaPlugin {
         return false;
     }
 
-    private void registerReadListener(CallbackContext callbackContext) {
+    /*private void registerReadListener(CallbackContext callbackContext) {
         // Register a listener when the "read" action is invoked
         dataAvailableListener = new DataAvailableListener() {
             @Override
@@ -89,7 +89,7 @@ public class SerialPortPlugin extends CordovaPlugin {
         };
         
         readThread.addDataAvailableListener(dataAvailableListener);
-    }
+    }*/
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
@@ -254,7 +254,7 @@ class ReadDataThread implements Runnable {
    private  Lock lock=new ReentrantLock();
    private boolean dataModel;
    private boolean running = true;
-   private DataAvailableListener dataAvailableListener;
+   //private DataAvailableListener dataAvailableListener;
 
    ReadDataThread( String name, InputStream inputStream, boolean model) {
       threadName = name;
@@ -294,10 +294,10 @@ class ReadDataThread implements Runnable {
           } else {
 			readData += new String(byteArray);
           }
-          if (dataAvailableListener != null) {
+          /*if (dataAvailableListener != null) {
             
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
-           }
+           }*/
           lock.unlock();
           System.out.println("readstr:" + readData);
       }
@@ -344,7 +344,7 @@ class ReadDataThread implements Runnable {
         e.printStackTrace();
      }
   }
-  public void addDataAvailableListener(DataAvailableListener listener) {
+  /*public void addDataAvailableListener(DataAvailableListener listener) {
         dataAvailableListener = listener;
-    }
+    }*/
 }
