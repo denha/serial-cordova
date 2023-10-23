@@ -69,7 +69,7 @@ public class SerialPortPlugin extends CordovaPlugin {
         }
         else if (action.equals("registerRead")) {
                     // Register a listener when the "read" action is invoked
-            this.registerReadListener(callbackContext);
+            //this.registerReadListener(callbackContext);
             return true;
         }
 
