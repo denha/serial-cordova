@@ -23,7 +23,7 @@ var SerialPort = {
     },
     registerRead: function (success, error) {
         exec(success, error, "SerialPortPlugin", "registerRead", []);
-    },
+    }
 };
 
 module.exports = SerialPort;
