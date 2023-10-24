@@ -23,6 +23,9 @@ var SerialPort = {
     },
     registerRead: function (success, error) {
         exec(success, error, "SerialPortPlugin", "registerRead", []);
+    },
+    startReadThread: function () {
+        exec(null, null, "SerialPortPlugin", "startReadThread", []);
     }
 };
 

@@ -71,15 +71,19 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-            continuousRead = true; // Set the flag to true for continuous reading
+            //continuousRead = true; // Set the flag to true for continuous reading
             this.startContinuousRead(callbackContext);
+            return true;
+        }
+        else if (action.equals("startReadThread")) {
+            this.startReadThread();
             return true;
         }
 
         return false;
     }
 
-    private void startContinuousRead(CallbackContext callbackContext) {
+    /*private void startContinuousRead(CallbackContext callbackContext) {
         if (continuousRead) {
             Thread continuousReadThread = new Thread(new Runnable() {
                 @Override
@@ -103,6 +107,23 @@ public class SerialPortPlugin extends CordovaPlugin {
 
             continuousReadThread.start();
         }
+    }*/
+    private void continuousReadThread(CallbackContext callbackContext) {
+        String data = readThread.getReceivedData();
+        if (data == null || data.isEmpty()) {
+            callbackContext.error("No data received");
+        } else {
+            callbackContext.success(data);
+            readThread.clearReceivedData(); // Optional: Clear the received data
+        }
+    }
+    private void startReadThread() {
+        readThread = new ReadDataThread("Thread-Read", inputStream, this.dataModel);
+        readThread.start();
+    }
+    
+    private void stopReadThread() {
+        readThread.stop();
     }
 
     private void openDevice(String message, CallbackContext callbackContext) {
@@ -268,6 +289,12 @@ class ReadDataThread implements Runnable {
    private  Lock lock=new ReentrantLock();
    private boolean dataModel;
    private boolean running = true;
+   private String receivedData = "";
+    // ... (other fields and methods)
+
+    public String getReceivedData() {
+        return receivedData;
+    }
    //private DataAvailableListener dataAvailableListener;
 
    ReadDataThread( String name, InputStream inputStream, boolean model) {
@@ -307,12 +334,14 @@ class ReadDataThread implements Runnable {
 			 readData += FormatUtil.bytes2HexString(byteArray, readLen);
           } else {
 			readData += new String(byteArray);
+            
           }
           /*if (dataAvailableListener != null) {
             
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }*/
           lock.unlock();
+          receivedData = readData;
           System.out.println("readstr:" + readData);
       }
 
@@ -349,7 +378,11 @@ class ReadDataThread implements Runnable {
          t.start ();
       }
    }
-
+   public void clearReceivedData() {
+        lock.lock();
+        receivedData = "";
+        lock.unlock();
+    }
    public void stop() {
 	 this.running = false;
      try {
