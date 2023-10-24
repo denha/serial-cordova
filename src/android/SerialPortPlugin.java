@@ -42,6 +42,8 @@ public class SerialPortPlugin extends CordovaPlugin {
     private CallbackContext dataUpdateCallbackContext;
     private ExecutorService executorService;
     private Handler handler;
+    private Thread continuousReadThread;
+    private boolean isReading = false;
 
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
@@ -97,30 +99,34 @@ public class SerialPortPlugin extends CordovaPlugin {
 
 
     private void startContinuousRead(CallbackContext callbackContext) {
-        if (continuousRead) {
-            Thread continuousReadThread = new Thread(new Runnable() {
+        if (!isReading) {
+            isReading = true;
+            continuousReadThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while (continuousRead) {
-                        String data = readThread.getData();
+                    while (isReading) {
+                        final String data = readThread.getData();
                         if (data != null) {
-                            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                            result.setKeepCallback(true);
-                            callbackContext.sendPluginResult(result);
-                            System.out.println("Exists" + data);
-                        }else{
-                             System.out.println("Not Exists" + data);
+                            System.out.println("Exists*************** "+data);
+                            cordova.getThreadPool().execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                                    result.setKeepCallback(true);
+                                    callbackContext.sendPluginResult(result);
+                                }
+                            });
                         }
-
+                        System.out.println(" Dont ********** exist Exists "+data);
                         try {
                             Thread.sleep(1000); // Adjust the sleep duration as needed
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            // Handle InterruptedException, if necessary
                         }
                     }
                 }
             });
-
+    
             continuousReadThread.start();
         }
     }
