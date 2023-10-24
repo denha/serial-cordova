@@ -107,6 +107,9 @@ public class SerialPortPlugin extends CordovaPlugin {
                             PluginResult result = new PluginResult(PluginResult.Status.OK, data);
                             result.setKeepCallback(true);
                             callbackContext.sendPluginResult(result);
+                            System.out.println("Exists" + data);
+                        }else{
+                             System.out.println("Not Exists" + data);
                         }
 
                         try {
