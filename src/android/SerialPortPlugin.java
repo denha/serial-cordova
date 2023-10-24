@@ -17,6 +17,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import android.os.Handler;
+import android.os.Looper;
 import com.example.x6.serial.SerialPort;
 
 
@@ -34,7 +38,15 @@ public class SerialPortPlugin extends CordovaPlugin {
     private boolean dataModel;
     private boolean continuousRead;
     private CallbackContext dataUpdateCallbackContext;
+    private ExecutorService executorService;
+    private Handler handler;
 
+    @Override
+    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
+        executorService = Executors.newSingleThreadExecutor();
+        handler = new Handler(Looper.getMainLooper());
+    }
 
     //private DataAvailableListener dataAvailableListener;
 
@@ -72,8 +84,8 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-            continuousRead = true; // Set the flag to true for continuous reading
-            //this.startContinuousRead(callbackContext);
+            continuousRead = true; // Always set the flag to true for continuous reading
+            this.readSerialData(dataUpdateCallbackContext);
             return true;
         }
 
@@ -164,13 +176,35 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void readSerialData(CallbackContext callbackContext) {
-        String data = readThread.getData();
-        if(data == null){
-            callbackContext.error("null");
-        }else {
-            callbackContext.success(data);
+         if (continuousRead) {
+            final Runnable readTask = new Runnable() {
+                @Override
+                public void run() {
+                    final String data = readThread.getData();
+                    if (data != null) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                callbackContext.success(data);
+                            }
+                        });
+                        executorService.submit(this); // Continuously read data
+                    }
+                }
+            };
+
+            executorService.submit(readTask);
+        } else {
+            String data = readThread.getData();
+            if (data == null) {
+                callbackContext.error("null");
+            } else {
+                callbackContext.success(data);
+            }
         }
     }
+
+    
 
     private void writeSerialData(String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {

@@ -6,9 +6,7 @@
  ************************************************************************/
 
 package com.plugin.SerialPortPlugin;
-public interface DataReceivedListener {
-    void onDataReceived(String data);
-}
+
 
 public class FormatUtil {
     public static byte[] hexString2Bytes(String str) {
