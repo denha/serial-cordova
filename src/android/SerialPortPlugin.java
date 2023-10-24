@@ -33,6 +33,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private ReadDataThread readThread;
     private boolean dataModel;
     private boolean continuousRead;
+    private CallbackContext dataUpdateCallbackContext;
 
 
     //private DataAvailableListener dataAvailableListener;
@@ -71,7 +72,7 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-            //continuousRead = true; // Set the flag to true for continuous reading
+            continuousRead = true; // Set the flag to true for continuous reading
             this.startContinuousRead(callbackContext);
             return true;
         }
@@ -80,31 +81,27 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void startContinuousRead(CallbackContext callbackContext) {
-       
-            try {
-
-                String data = readThread.getData();
-                int i = 0;
-                while(data == null && i < (int)(1000/10)) {
-                    try {
-                        Thread.sleep(5);
-                    } catch(Exception e) {
+        dataUpdateCallbackContext = callbackContext;
+        continuousRead = true; // Set the flag to true for continuous reading
+        // Optionally, you can create a separate thread to continuously check for data availability
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (continuousRead) {
+                    String data = readThread.getData();
+                    if (data != null && dataUpdateCallbackContext != null) {
+                        dataUpdateCallbackContext.success(data);
                     }
-                    i++;
-                    data = readThread.getData();
+                    try {
+                        Thread.sleep(1); // Adjust the sleep interval as needed
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                if(data == null) {
-                    callbackContext.error("read data timeout");
-                } else {
-                    callbackContext.success(data);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                callbackContext.error("write data exception");
             }
-
-
+        }).start();
     }
+    
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
