@@ -265,36 +265,34 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void sendDataAndWaitResponse(String message, int timeout, CallbackContext callbackContext) {
-        if (message != null && message.length() > 0) {
-            try {
-                byte[] byteArray;
-                if(this.dataModel == true) {
-                    byteArray =FormatUtil.hexString2Bytes(message);
-                } else {
-                    byteArray = message.getBytes();
-                }
-                outputStream.write(byteArray);
-                String data = readThread.getData();
-                int i = 0;
-                while(data == null && i < (int)(timeout/10)) {
-                    try {
-                        Thread.sleep(10);
-                    } catch(Exception e) {
+        if (!isReading) {
+            isReading = true;
+            continuousReadThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (isReading) {
+                        String data = readThread.getData();
+                        while (data == null) {
+                            try {
+                                Thread.sleep(100); // Poll every 100 milliseconds
+                            } catch (InterruptedException e) {
+                                // Handle InterruptedException, if necessary
+                            }
+                            data = readThread.getData();
+                        }
+                        cordova.getThreadPool().execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                                result.setKeepCallback(true);
+                                callbackContext.sendPluginResult(result);
+                            }
+                        });
                     }
-                    i++;
-                    data = readThread.getData();
                 }
-                if(data == null) {
-                    callbackContext.error("read data timeout");
-                } else {
-                    callbackContext.success(data);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                callbackContext.error("write data exception");
-            }
-        } else {
-            callbackContext.error("write data fail");
+            });
+    
+            continuousReadThread.start();
         }
     }
 
