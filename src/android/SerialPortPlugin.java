@@ -93,7 +93,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                         dataUpdateCallbackContext.success(data);
                     }
                     try {
-                        Thread.sleep(1); // Adjust the sleep interval as needed
+                        Thread.sleep(100); // Adjust the sleep interval as needed
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
