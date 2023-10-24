@@ -80,27 +80,29 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void startContinuousRead(CallbackContext callbackContext) {
+       
             try {
 
-                // Start continuous data retrieval
-              boolean  isContinuousRead = true;
-    
-                while (isContinuousRead) {
+                String data = readThread.getData();
+                int i = 0;
+                while(data == null && i < (int)(1000/10)) {
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(5);
                     } catch(Exception e) {
                     }
-                    String data = readThread.getData();
-                    if (data != null) {
-                        PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                        result.setKeepCallback(true);
-                        callbackContext.sendPluginResult(result);
-                    }
+                    i++;
+                    data = readThread.getData();
+                }
+                if(data == null) {
+                    callbackContext.error("read data timeout");
+                } else {
+                    callbackContext.success(data);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 callbackContext.error("write data exception");
             }
+
 
     }
 
