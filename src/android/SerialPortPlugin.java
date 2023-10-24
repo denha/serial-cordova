@@ -271,14 +271,14 @@ public class SerialPortPlugin extends CordovaPlugin {
                 @Override
                 public void run() {
                     while (isReading) {
-                        String data = readThread.getData();
+                        final String data = readThread.getData();
                         while (data == null) {
                             try {
                                 Thread.sleep(100); // Poll every 100 milliseconds
                             } catch (InterruptedException e) {
                                 // Handle InterruptedException, if necessary
                             }
-                            data = readThread.getData();
+                            //data = readThread.getData();
                         }
                         cordova.getThreadPool().execute(new Runnable() {
                             @Override
