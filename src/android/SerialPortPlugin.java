@@ -87,7 +87,7 @@ public class SerialPortPlugin extends CordovaPlugin {
         }
         else if (action.equals("registerRead")) {
             continuousRead = true; // Always set the flag to true for continuous reading
-            this.readSerialData(dataUpdateCallbackContext);
+            this.readSerialData(callbackContext);
             return true;
         }
 
