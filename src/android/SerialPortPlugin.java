@@ -108,7 +108,7 @@ public class SerialPortPlugin extends CordovaPlugin {
             continuousReadThread.start();
         }
     }*/
-    private void continuousReadThread(CallbackContext callbackContext) {
+    private void startContinuousRead(CallbackContext callbackContext) {
         String data = readThread.getReceivedData();
         if (data == null || data.isEmpty()) {
             callbackContext.error("No data received");
