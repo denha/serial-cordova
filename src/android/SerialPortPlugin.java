@@ -105,7 +105,13 @@ public class SerialPortPlugin extends CordovaPlugin {
                 @Override
                 public void run() {
                     while (isReading) {
-                        Thread.sleep(100);
+                                                try {
+                             // Adjust the sleep duration as needed
+                             Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            // Handle InterruptedException, if necessary
+                        }
+                        
                         final String data = readThread.getData();
                         if (data != null) {
                             System.out.println("Exists*************** "+data);
@@ -119,11 +125,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                             });
                         }
                         System.out.println(" Dont ********** exist Exists "+data);
-                        try {
-                             // Adjust the sleep duration as needed
-                        } catch (InterruptedException e) {
-                            // Handle InterruptedException, if necessary
-                        }
+
                     }
                 }
             });
