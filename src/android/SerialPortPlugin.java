@@ -87,7 +87,7 @@ public class SerialPortPlugin extends CordovaPlugin {
         }
         else if (action.equals("registerRead")) {
             continuousRead = true; // Always set the flag to true for continuous reading
-            this.readSerialData(callbackContext);
+            this.startContinuousRead(callbackContext);
             return true;
         }
 
@@ -96,7 +96,31 @@ public class SerialPortPlugin extends CordovaPlugin {
 
 
 
-    
+    private void startContinuousRead(CallbackContext callbackContext) {
+        if (continuousRead) {
+            Thread continuousReadThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (continuousRead) {
+                        String data = readThread.getData();
+                        if (data != null) {
+                            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                            result.setKeepCallback(true);
+                            callbackContext.sendPluginResult(result);
+                        }
+
+                        try {
+                            Thread.sleep(1000); // Adjust the sleep duration as needed
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+
+            continuousReadThread.start();
+        }
+    }
     
 
     private void openDevice(String message, CallbackContext callbackContext) {
