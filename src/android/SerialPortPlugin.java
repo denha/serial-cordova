@@ -86,6 +86,10 @@ public class SerialPortPlugin extends CordovaPlugin {
               boolean  isContinuousRead = true;
     
                 while (isContinuousRead) {
+                    try {
+                        Thread.sleep(10);
+                    } catch(Exception e) {
+                    }
                     String data = readThread.getData();
                     if (data != null) {
                         PluginResult result = new PluginResult(PluginResult.Status.OK, data);
