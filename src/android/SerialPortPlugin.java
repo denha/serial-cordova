@@ -93,7 +93,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                         callbackContext.sendPluginResult(result);
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 callbackContext.error("write data exception");
             }
