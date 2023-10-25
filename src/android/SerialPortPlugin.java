@@ -20,9 +20,7 @@ import java.io.OutputStream;
 import com.example.x6.serial.SerialPort;
 
 
-
 import java.util.concurrent.locks.*;
-import java.util.function.Consumer;
 /**
  * This class echoes a string called from JavaScript.
  */
@@ -35,9 +33,9 @@ public class SerialPortPlugin extends CordovaPlugin {
     private ReadDataThread readThread;
     private boolean dataModel;
     private boolean continuousRead;
-    private Consumer<String> dataCallback;
 
 
+    //private DataAvailableListener dataAvailableListener;
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
@@ -73,40 +71,17 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-            continuousRead = true; // Set the flag to true for continuous reading
-            this.startContinuousRead(callbackContext);
+            //continuousRead = true; // Set the flag to true for continuous reading
+            //this.startContinuousRead(callbackContext);
+            readThread = new ReadDataThread("Thread-Read", inputStream, this.dataModel, callbackContext);
+            readThread.start();
             return true;
         }
 
         return false;
     }
 
-    private void startContinuousRead(CallbackContext callbackContext) {
-       if (continuousRead) {
-            dataCallback = new Consumer<String>() {
-                @Override
-                public void accept(String data) {
-                    // Handle the real-time data here
-                    if (callbackContext != null) {
-                        PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                        result.setKeepCallback(true);
-                        callbackContext.sendPluginResult(result);
-                    }
-                }
-            };
 
-            Thread continuousReadThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    readThread = new ReadDataThread("Thread-Read", inputStream, dataModel, dataCallback);
-                    readThread.start();
-                }
-            });
-
-            continuousReadThread.start();
-        }
-    }
-    
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
@@ -162,7 +137,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                 serialPort = new SerialPort(new File(devName), baudrate, flags);
                 inputStream = serialPort.getInputStream();
                 outputStream = serialPort.getOutputStream();
-                readThread = new ReadDataThread( "Thread-Read", inputStream, this.dataModel, dataCallback);
+                readThread = new ReadDataThread( "Thread-Read", inputStream, this.dataModel,callbackContext);
                 readThread.start();
                 callbackContext.success("open device success");
             } catch (IOException e) {
@@ -271,14 +246,14 @@ class ReadDataThread implements Runnable {
    private  Lock lock=new ReentrantLock();
    private boolean dataModel;
    private boolean running = true;
-   private Consumer<String> dataCallback;
+   private CallbackContext callbackContext;
    //private DataAvailableListener dataAvailableListener;
 
-   ReadDataThread( String name, InputStream inputStream, boolean model, Consumer<String> callback) {
+   ReadDataThread( String name, InputStream inputStream, boolean model, CallbackContext callbackContext) {
       threadName = name;
       input = inputStream;
       dataModel = model;
-      dataCallback = callback;
+      this.callbackContext = callbackContext; 
       System.out.println("Creating " +  threadName );
    }
 
@@ -313,15 +288,12 @@ class ReadDataThread implements Runnable {
           } else {
 			readData += new String(byteArray);
           }
-
           /*if (dataAvailableListener != null) {
             
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }*/
           lock.unlock();
-        if (dataCallback != null) {
-           dataCallback.accept(readData);
-             }
+          sendRealTimeData(readData);
           System.out.println("readstr:" + readData);
       }
 
@@ -340,6 +312,13 @@ class ReadDataThread implements Runnable {
       System.out.println("dataModel:" + this.dataModel);
    }
 
+   public void sendRealTimeData(String data) {
+    if (data != null && callbackContext != null) {
+        PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+        result.setKeepCallback(true);
+        callbackContext.sendPluginResult(result);
+    }
+}
    public String getData() {
         String data = null;
         lock.lock();
