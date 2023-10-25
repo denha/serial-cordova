@@ -71,17 +71,39 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-            //continuousRead = true; // Set the flag to true for continuous reading
-            //this.startContinuousRead(callbackContext);
-            readThread = new ReadDataThread("Thread-Read", inputStream, this.dataModel, callbackContext);
-            readThread.start();
+            continuousRead = true; // Set the flag to true for continuous reading
+            this.startContinuousRead(callbackContext);
             return true;
         }
 
         return false;
     }
 
+    private void startContinuousRead(CallbackContext callbackContext) {
+        if (continuousRead) {
+            Thread continuousReadThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while (continuousRead) {
+                        String data = readThread.getData();
+                        if (data != null) {
+                            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                            result.setKeepCallback(true);
+                            callbackContext.sendPluginResult(result);
+                        }
 
+                        try {
+                            Thread.sleep(500); // Adjust the sleep duration as needed
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+
+            continuousReadThread.start();
+        }
+    }
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
@@ -137,7 +159,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                 serialPort = new SerialPort(new File(devName), baudrate, flags);
                 inputStream = serialPort.getInputStream();
                 outputStream = serialPort.getOutputStream();
-                readThread = new ReadDataThread( "Thread-Read", inputStream, this.dataModel,callbackContext);
+                readThread = new ReadDataThread( "Thread-Read", inputStream, this.dataModel);
                 readThread.start();
                 callbackContext.success("open device success");
             } catch (IOException e) {
@@ -246,14 +268,12 @@ class ReadDataThread implements Runnable {
    private  Lock lock=new ReentrantLock();
    private boolean dataModel;
    private boolean running = true;
-   private CallbackContext callbackContext;
    //private DataAvailableListener dataAvailableListener;
 
-   ReadDataThread( String name, InputStream inputStream, boolean model, CallbackContext callbackContext) {
+   ReadDataThread( String name, InputStream inputStream, boolean model) {
       threadName = name;
       input = inputStream;
       dataModel = model;
-      this.callbackContext = callbackContext; 
       System.out.println("Creating " +  threadName );
    }
 
@@ -293,7 +313,6 @@ class ReadDataThread implements Runnable {
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }*/
           lock.unlock();
-          sendRealTimeData(readData);
           System.out.println("readstr:" + readData);
       }
 
@@ -312,13 +331,6 @@ class ReadDataThread implements Runnable {
       System.out.println("dataModel:" + this.dataModel);
    }
 
-   public void sendRealTimeData(String data) {
-    if (data != null && callbackContext != null) {
-        PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-        result.setKeepCallback(true);
-        callbackContext.sendPluginResult(result);
-    }
-}
    public String getData() {
         String data = null;
         lock.lock();
