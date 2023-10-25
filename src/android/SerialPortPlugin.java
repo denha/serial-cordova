@@ -313,7 +313,7 @@ class ReadDataThread implements Runnable {
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }*/
           lock.unlock();
-          System.out.println("readstr:" + reDataad);
+          System.out.println("readstr:" + readData);
       }
 
 	  if(running) {
