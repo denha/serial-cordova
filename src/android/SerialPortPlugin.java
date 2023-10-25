@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import com.example.x6.serial.SerialPort;
+import com.plugin.SerialPortPlugin.DataListener;
 
 
 import java.util.concurrent.locks.*;
@@ -36,6 +37,7 @@ public class SerialPortPlugin extends CordovaPlugin {
 
 
     private DataListener dataAvailableListener;
+    
     
 
     @Override
