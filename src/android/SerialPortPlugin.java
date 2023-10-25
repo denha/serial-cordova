@@ -3,8 +3,6 @@ package com.plugin.SerialPortPlugin;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CordovaWebView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,10 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import android.os.Handler;
-import android.os.Looper;
 import com.example.x6.serial.SerialPort;
 
 
@@ -39,18 +33,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private ReadDataThread readThread;
     private boolean dataModel;
     private boolean continuousRead;
-    private CallbackContext dataUpdateCallbackContext;
-    private ExecutorService executorService;
-    private Handler handler;
-    private Thread continuousReadThread;
-    private boolean isReading = false;
 
-    @Override
-    public void initialize(CordovaInterface cordova, CordovaWebView webView) {
-        super.initialize(cordova, webView);
-        executorService = Executors.newSingleThreadExecutor();
-        handler = new Handler(Looper.getMainLooper());
-    }
 
     //private DataAvailableListener dataAvailableListener;
 
@@ -88,7 +71,7 @@ public class SerialPortPlugin extends CordovaPlugin {
             return true;
         }
         else if (action.equals("registerRead")) {
-            continuousRead = true; // Always set the flag to true for continuous reading
+            continuousRead = true; // Set the flag to true for continuous reading
             this.startContinuousRead(callbackContext);
             return true;
         }
@@ -96,43 +79,31 @@ public class SerialPortPlugin extends CordovaPlugin {
         return false;
     }
 
-
-
     private void startContinuousRead(CallbackContext callbackContext) {
-        if (!isReading) {
-            isReading = true;
-            continuousReadThread = new Thread(new Runnable() {
+        if (continuousRead) {
+            Thread continuousReadThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while (isReading) {
-
-                        
-                        final String data = readThread.getData();
+                    while (continuousRead) {
+                        String data = readThread.getData();
                         if (data != null) {
-                            System.out.println("Exists*************** "+data);
-                            cordova.getThreadPool().execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                                    result.setKeepCallback(true);
-                                    callbackContext.sendPluginResult(result);
-                                }
-                            });
+                            PluginResult result = new PluginResult(PluginResult.Status.OK, data);
+                            result.setKeepCallback(true);
+                            callbackContext.sendPluginResult(result);
                         }
-                        System.out.println(" Dont ********** exist Exists "+data);
+
                         try {
-                            Thread.sleep(1000); // Sleep after processing data
+                            Thread.sleep(500); // Adjust the sleep duration as needed
                         } catch (InterruptedException e) {
-                            // Handle InterruptedException, if necessary
+                            e.printStackTrace();
                         }
                     }
                 }
             });
-    
+
             continuousReadThread.start();
         }
     }
-    
 
     private void openDevice(String message, CallbackContext callbackContext) {
         JSONArray jsonArray = null;
@@ -213,35 +184,13 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void readSerialData(CallbackContext callbackContext) {
-         if (continuousRead) {
-            final Runnable readTask = new Runnable() {
-                @Override
-                public void run() {
-                    final String data = readThread.getData();
-                    if (data != null) {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                callbackContext.success(data);
-                            }
-                        });
-                        executorService.submit(this); // Continuously read data
-                    }
-                }
-            };
-
-            executorService.submit(readTask);
-        } else {
-            String data = readThread.getData();
-            if (data == null) {
-                callbackContext.error("null");
-            } else {
-                callbackContext.success(data);
-            }
+        String data = readThread.getData();
+        if(data == null){
+            callbackContext.error("null");
+        }else {
+            callbackContext.success(data);
         }
     }
-
-    
 
     private void writeSerialData(String message, CallbackContext callbackContext) {
         if (message != null && message.length() > 0) {
@@ -265,34 +214,36 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void sendDataAndWaitResponse(String message, int timeout, CallbackContext callbackContext) {
-        if (!isReading) {
-            isReading = true;
-            continuousReadThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (isReading) {
-                        final String data = readThread.getData();
-                        while (data == null) {
-                            try {
-                                Thread.sleep(100); // Poll every 100 milliseconds
-                            } catch (InterruptedException e) {
-                                // Handle InterruptedException, if necessary
-                            }
-                            //data = readThread.getData();
-                        }
-                        cordova.getThreadPool().execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                PluginResult result = new PluginResult(PluginResult.Status.OK, data);
-                                result.setKeepCallback(true);
-                                callbackContext.sendPluginResult(result);
-                            }
-                        });
-                    }
+        if (message != null && message.length() > 0) {
+            try {
+                byte[] byteArray;
+                if(this.dataModel == true) {
+                    byteArray =FormatUtil.hexString2Bytes(message);
+                } else {
+                    byteArray = message.getBytes();
                 }
-            });
-    
-            continuousReadThread.start();
+                outputStream.write(byteArray);
+                String data = readThread.getData();
+                int i = 0;
+                while(data == null && i < (int)(timeout/10)) {
+                    try {
+                        Thread.sleep(10);
+                    } catch(Exception e) {
+                    }
+                    i++;
+                    data = readThread.getData();
+                }
+                if(data == null) {
+                    callbackContext.error("read data timeout");
+                } else {
+                    callbackContext.success(data);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                callbackContext.error("write data exception");
+            }
+        } else {
+            callbackContext.error("write data fail");
         }
     }
 
