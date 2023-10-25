@@ -92,11 +92,11 @@ public class SerialPortPlugin extends CordovaPlugin {
                             callbackContext.sendPluginResult(result);
                         }
 
-                        try {
-                            //Thread.sleep(500); // Adjust the sleep duration as needed
+                        /*try {
+                            Thread.sleep(500); // Adjust the sleep duration as needed
                         } catch (InterruptedException e) {
                             e.printStackTrace();
-                        }
+                        }*/
                     }
                 }
             });
@@ -313,7 +313,7 @@ class ReadDataThread implements Runnable {
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }*/
           lock.unlock();
-          System.out.println("readstr:" + readData);
+          System.out.println("readstr:" + reDataad);
       }
 
 	  if(running) {
