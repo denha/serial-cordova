@@ -313,14 +313,15 @@ class ReadDataThread implements Runnable {
           } else {
 			readData += new String(byteArray);
           }
-          if (dataCallback != null) {
-           dataCallback.accept(readData);
-             }
+
           /*if (dataAvailableListener != null) {
             
                 dataAvailableListener.onDataAvailable(readData); // Notify the listener with the received data
            }*/
           lock.unlock();
+        if (dataCallback != null) {
+           dataCallback.accept(readData);
+             }
           System.out.println("readstr:" + readData);
       }
 
