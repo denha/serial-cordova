@@ -1,4 +1,4 @@
-package android.com.plugin.SerialPortPlugin;
+package com.plugin.SerialPortPlugin;
 
 public interface DataListener {
     void onDataAvailable(String data);
