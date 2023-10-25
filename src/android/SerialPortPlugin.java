@@ -35,7 +35,8 @@ public class SerialPortPlugin extends CordovaPlugin {
     private boolean continuousRead;
 
 
-    //private DataAvailableListener dataAvailableListener;
+    private DataListener dataAvailableListener;
+    
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
