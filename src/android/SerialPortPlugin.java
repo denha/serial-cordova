@@ -107,6 +107,12 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void openDevice(String message, CallbackContext callbackContext) {
+        if (serialPort != null) {
+            callbackContext.error("Serial port is already open");
+            System.out.println("Serial port is already open");
+            return;
+        }
+
         JSONArray jsonArray = null;
         JSONObject arg = null;
         String devName = null;
@@ -155,7 +161,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                 catch(Exception e){
                     this.dataModel = false;
                 }
-                System.out.println("dataModel:" + this.dataModel);
+                //System.out.println("dataModel:" + this.dataModel);
 
                 serialPort = new SerialPort(new File(devName), baudrate, flags);
                 inputStream = serialPort.getInputStream();
