@@ -346,6 +346,7 @@ class ReadDataThread implements Runnable {
    }
 
    public void start() {
+    this.running = true;
       System.out.println("Starting " +  threadName );
       if (t == null) {
          t = new Thread (this, threadName);
