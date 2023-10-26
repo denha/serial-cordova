@@ -161,7 +161,9 @@ public class SerialPortPlugin extends CordovaPlugin {
                 inputStream = serialPort.getInputStream();
                 outputStream = serialPort.getOutputStream();
                 readThread = new ReadDataThread( "Thread-Read", inputStream, this.dataModel);
+                readThread.stop();
                 readThread.start();
+
                 callbackContext.success("open device success");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -353,6 +355,7 @@ class ReadDataThread implements Runnable {
 
    public void stop() {
 	 this.running = false;
+     System.out.println("Stopped running " +  threadName );
      try {
 		input.close();
      } catch (IOException e) {
