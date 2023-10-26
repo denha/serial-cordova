@@ -99,6 +99,11 @@ public class SerialPortPlugin extends CordovaPlugin {
                             result.setKeepCallback(true);
                             callbackContext.sendPluginResult(result);
                         }
+                        try {
+                            Thread.sleep(10); // Adjust the sleep duration as needed
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             });
