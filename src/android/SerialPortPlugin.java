@@ -34,6 +34,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private boolean dataModel;
     private boolean continuousRead;
     private Thread continuousReadThread;
+    private boolean isPortOpen = false;
 
 
     //private DataAvailableListener dataAvailableListener;
@@ -107,7 +108,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     }
 
     private void openDevice(String message, CallbackContext callbackContext) {
-        if (serialPort != null) {
+        if (isPortOpen) {
             callbackContext.error("Serial port is already open");
             System.out.println("Serial port is already open");
             return;
@@ -170,6 +171,7 @@ public class SerialPortPlugin extends CordovaPlugin {
                 readThread.start();
 
                 callbackContext.success("open device success");
+                isPortOpen = true;
             } catch (IOException e) {
                 e.printStackTrace();
                 callbackContext.error("open device exception");
