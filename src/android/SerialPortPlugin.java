@@ -33,6 +33,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     private ReadDataThread readThread;
     private boolean dataModel;
     private boolean continuousRead;
+    private Thread continuousReadThread;
 
 
     //private DataAvailableListener dataAvailableListener;
@@ -81,7 +82,12 @@ public class SerialPortPlugin extends CordovaPlugin {
 
     private void startContinuousRead(CallbackContext callbackContext) {
         if (continuousRead) {
-            Thread continuousReadThread = new Thread(new Runnable() {
+            // Check if a continuous read thread is already running and stop it
+            if (continuousReadThread != null && continuousReadThread.isAlive()) {
+                continuousReadThread.interrupt(); // Stop the existing thread
+            }
+    
+            continuousReadThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     while (continuousRead) {
@@ -91,16 +97,10 @@ public class SerialPortPlugin extends CordovaPlugin {
                             result.setKeepCallback(true);
                             callbackContext.sendPluginResult(result);
                         }
-
-                        /*try {
-                            Thread.sleep(500); // Adjust the sleep duration as needed
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }*/
                     }
                 }
             });
-
+    
             continuousReadThread.start();
         }
     }
