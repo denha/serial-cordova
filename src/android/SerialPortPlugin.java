@@ -43,7 +43,7 @@ public class SerialPortPlugin extends CordovaPlugin {
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         if (action.equals("openDevice")) {
             JSONArray messages = args.getJSONArray(0);
-            this.openDevices(messages, callbackContext);
+            this.openDevice(messages, callbackContext);
             return true;
         }
         else if (action.equals("closeDevice")) {
