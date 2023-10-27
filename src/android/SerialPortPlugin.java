@@ -112,78 +112,36 @@ public class SerialPortPlugin extends CordovaPlugin {
         }
     }
 
-    private void openDevice(String message, CallbackContext callbackContext) {
+    private void openDevice(JSONArray messages, CallbackContext callbackContext) {
         if (isPortOpen) {
-            //callbackContext.error("Serial port is already open");
             System.out.println("Serial port is already open");
             return;
         }
-
-        JSONArray jsonArray = null;
-        JSONObject arg = null;
-        String devName = null;
-        int baudrate = 0;
-        int flags = 0;
-        if (message != null && message.length() > 0) {
-            try {
-                try {
-                    jsonArray = new JSONArray(message);
-                }
-                catch(Exception e){
-                    callbackContext.error("get json array exception");
-                    return;
-                }
-                try {
-                    arg = jsonArray.getJSONObject(0);
-                }
-                catch(Exception e){
-                    callbackContext.error("get arg exception");
-                    return;
-                }
-                try {
-                    devName = arg.getString("dev");
-                }
-                catch(Exception e){
-                    callbackContext.error("get dev exception");
-                    return;
-                }
-                try {
-                    baudrate =  arg.getInt("baudrate");
-                }
-                catch(Exception e){
-                    callbackContext.error("get baudrate exception");
-                    return;
-                }
-                try {
-                    flags = arg.getInt("flags");
-                }
-                catch(Exception e){
-                    callbackContext.error("get flags exception");
-                    return;
-                }
-                try {
-                    this.dataModel = arg.getBoolean("isHex");
-                }
-                catch(Exception e){
-                    this.dataModel = false;
-                }
-                //System.out.println("dataModel:" + this.dataModel);
-
+    
+        try {
+            for (int i = 0; i < messages.length(); i++) {
+                JSONObject arg = messages.getJSONObject(i);
+    
+                String devName = arg.getString("dev");
+                int baudrate = arg.getInt("baudrate");
+                int flags = arg.getInt("flags");
+                this.dataModel = arg.optBoolean("isHex", false);
+    
                 serialPort = new SerialPort(new File(devName), baudrate, flags);
                 inputStream = serialPort.getInputStream();
                 outputStream = serialPort.getOutputStream();
-                readThread = new ReadDataThread( "Thread-Read", inputStream, this.dataModel);
+                readThread = new ReadDataThread("Thread-Read", inputStream, this.dataModel);
                 readThread.start();
-
-                callbackContext.success("open device success");
+    
                 isPortOpen = true;
-            } catch (IOException e) {
-                e.printStackTrace();
-                callbackContext.error("open device exception");
             }
-        } else {
-            callbackContext.error("open device fail");
+    
+            callbackContext.success("open devices success");
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+            callbackContext.error("open devices exception");
         }
+
     }
 
     private void closeDevice(CallbackContext callbackContext) {
