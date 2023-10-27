@@ -114,7 +114,7 @@ public class SerialPortPlugin extends CordovaPlugin {
 
     private void openDevice(String message, CallbackContext callbackContext) {
         if (isPortOpen) {
-            callbackContext.error("Serial port is already open");
+            //callbackContext.error("Serial port is already open");
             System.out.println("Serial port is already open");
             return;
         }
