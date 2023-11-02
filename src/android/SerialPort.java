@@ -77,7 +77,7 @@ public class SerialPort {
     static {//加载jni下的C文件库
  //       System.loadLibrary("serial_port");
         try {
-            System.loadLibrary("serial_port1");
+            System.loadLibrary("serial_port");
         } catch (Throwable e) {
            Log.d("zzzzz","loading  lib.so fail ："+e.toString());
         }
