@@ -77,6 +77,8 @@ public class SerialPort {
     static {//加载jni下的C文件库
  //       System.loadLibrary("serial_port");
         try {
+            String arch = System.getProperty("os.arch");
+            System.println("The system arch is "+arch);
             System.loadLibrary("serial_port");
         } catch (Throwable e) {
            Log.d("zzzzz","loading  lib.so fail ："+e.toString());
