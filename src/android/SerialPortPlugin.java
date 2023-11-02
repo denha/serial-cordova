@@ -72,7 +72,7 @@ public class SerialPortPlugin extends CordovaPlugin {
             this.setHex(message);
             return true;
         }
-        else if (action.equals("registerRead")) {
+        else if (action.equals("registerNFCReadCallback")) {
             continuousRead = true; // Set the flag to true for continuous reading
             this.startContinuousRead(callbackContext);
             return true;

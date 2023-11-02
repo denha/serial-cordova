@@ -21,8 +21,8 @@ var SerialPort = {
     setHex: function (isTrue) {
         exec(null, null, "SerialPortPlugin", "setHex", [isTrue]);
     },
-    registerRead: function (success, error) {
-        exec(success, error, "SerialPortPlugin", "registerRead", []);
+    registerNFCReadCallback: function (success, error) {
+        exec(success, error, "SerialPortPlugin", "registerNFCReadCallback", []);
     }
 
 };
